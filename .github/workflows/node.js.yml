@@ -51,13 +51,14 @@ jobs:
       run: |
         docker push sandeep3414/my-node-app:latest
 
-    - name: Stop and remove existing container (if running)
+    - name: Stop and remove container using port 3000 (if running)
       run: |
-        EXISTING_CONTAINER=$(docker ps -q --filter "ancestor=sandeep3414/my-node-app:latest")
-        if [ ! -z "$EXISTING_CONTAINER" ]; then
-          echo "Stopping and removing existing container..."
-          docker stop "$EXISTING_CONTAINER"
-          docker rm "$EXISTING_CONTAINER"
+        # Find the container using port 3000
+        CONTAINER_ON_PORT=$(docker ps -q --filter "publish=3000")
+        if [ ! -z "$CONTAINER_ON_PORT" ]; then
+          echo "Stopping and removing container using port 3000..."
+          docker stop "$CONTAINER_ON_PORT"
+          docker rm "$CONTAINER_ON_PORT"
         fi
 
     - name: Pull Docker image and run container
