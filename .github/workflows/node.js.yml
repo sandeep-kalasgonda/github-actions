@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-deploy:
-    # Use the 'git-test' self-hosted runner   thing are added
+    # Use the 'git-test' self-hosted runner
     runs-on: [self-hosted, git-test]
 
     strategy:
@@ -51,7 +51,16 @@ jobs:
       run: |
         docker push sandeep3414/my-node-app:latest
 
+    - name: Stop and remove existing container (if running)
+      run: |
+        CONTAINER_ID=$(docker ps -q --filter "ancestor=sandeep3414/my-node-app:latest")
+        if [ ! -z "$CONTAINER_ID" ]; then
+          echo "Stopping and removing existing container..."
+          docker stop "$CONTAINER_ID"
+          docker rm "$CONTAINER_ID"
+        fi
+
     - name: Pull Docker image and run container
       run: |
         docker pull sandeep3414/my-node-app:latest
-        docker run -d -p 3000:3000 sandeep3414/my-node-app:latest
+        docker run -d -p 3000:3000 --name my-node-app sandeep3414/my-node-app:latest
