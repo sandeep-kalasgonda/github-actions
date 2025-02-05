@@ -8,14 +8,12 @@ on:
 
 jobs:
   build-and-deploy:
+    # Use the 'git-test' self-hosted runner   thing are added
     runs-on: [self-hosted, git-test]
 
     strategy:
       matrix:
         node-version: [18.x]
-
-    env:
-      IMAGE_NAME: my-node-app
 
     steps:
     - name: Checkout repository
@@ -45,23 +43,15 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and tag Docker image
+    - name: Build Docker image
       run: |
-        TAG=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '-')  # Sanitize branch names
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG .
-        docker tag ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+        docker build -t sandeep3414/my-node-app:latest .
 
     - name: Push Docker image to Docker Hub
       run: |
-        docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG
-        docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+        docker push sandeep3414/my-node-app:latest
 
-    - name: Remove existing container (if running)
+    - name: Pull Docker image and run container
       run: |
-        docker ps -q --filter "name=my-node-app" | xargs -r docker stop
-        docker ps -aq --filter "name=my-node-app" | xargs -r docker rm
-
-    - name: Run Docker container
-      run: |
-        docker run -d --rm --name my-node-app -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
- 
+        docker pull sandeep3414/my-node-app:latest
+        docker run -d -p 3000:3000 sandeep3414/my-node-app:latest
