@@ -8,12 +8,14 @@ on:
 
 jobs:
   build-and-deploy:
-    # Use the 'git-test' self-hosted runner   thing are added
     runs-on: [self-hosted, git-test]
 
     strategy:
       matrix:
         node-version: [18.x]
+
+    env:
+      IMAGE_NAME: my-node-app
 
     steps:
     - name: Checkout repository
@@ -43,15 +45,22 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build Docker image
+    - name: Build and tag Docker image
       run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/my-node-app:latest .
+        TAG=${GITHUB_REF##*/}
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG .
+        docker tag ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
     - name: Push Docker image to Docker Hub
       run: |
-        docker push ${{ secrets.DOCKER_USERNAME }}/my-node-app:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG
+        docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
-    - name: Pull Docker image and run container
+    - name: Remove existing container (if running)
       run: |
-        docker pull ${{ secrets.DOCKER_USERNAME }}/my-node-app:latest
-        docker run -d -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/my-node-app:latest
+        docker ps -q --filter "ancestor=${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}" | xargs -r docker stop
+        docker ps -aq --filter "ancestor=${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}" | xargs -r docker rm
+
+    - name: Run Docker container
+      run: |
+        docker run -d --name my-node-app -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
