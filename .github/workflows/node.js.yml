@@ -45,13 +45,13 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t sandeep3414/my-node-app:latest .
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/my-node-app:latest .
 
     - name: Push Docker image to Docker Hub
       run: |
-        docker push sandeep3414/my-node-app:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/my-node-app:latest
 
     - name: Pull Docker image and run container
       run: |
-        docker pull sandeep3414/my-node-app:latest
-        docker run -d -p 3000:3000 sandeep3414/my-node-app:latest
+        docker pull ${{ secrets.DOCKER_USERNAME }}/my-node-app:latest
+        docker run -d -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/my-node-app:latest
