@@ -72,7 +72,7 @@ jobs:
         ssh-keyscan -H ${{ secrets.AZURE_VM_PUBLIC_IP }} >> ~/.ssh/known_hosts
 
         # SSH into Azure VM and deploy the Docker container
-        ssh -i ~/.ssh/id_rsa azureuser@${{ secrets.AZURE_VM_PUBLIC_IP }} << 'EOF'
+        ssh -t -i ~/.ssh/id_rsa azureuser@${{ secrets.AZURE_VM_PUBLIC_IP }} << 'EOF'
           
           # Pull the latest Docker image
           docker pull sandeep3414/my-node-app:latest
