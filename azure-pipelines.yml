@@ -1,6 +1,3 @@
-
-#20.197.9.94
-
 trigger:
 - main
 
@@ -10,12 +7,12 @@ resources:
 variables:
   tag: '$(Build.BuildId)'
   vmIp: '20.197.9.94'        # Replace with your Azure VM's public IP address
-  sshUser: 'azuruser'          # Replace with your SSH user for the VM
-  privateKey: $(SSH_PRIVATE_KEY) # You should securely store your private SSH key in Pipeline variables or Azure Key Vault
+  sshUser: 'azuruser'         # Replace with your SSH user for the VM
+  privateKey: $(SSH_PRIVATE_KEY) # Securely store your private SSH key as a secret variable
 
 stages:
 - stage: Build
-  displayName: Build image
+  displayName: Build Docker Image
   jobs:
   - job: Build
     displayName: Build Docker image
@@ -23,7 +20,7 @@ stages:
       vmImage: ubuntu-latest
     steps:
     - task: Docker@2
-      displayName: Build an image
+      displayName: Build Docker image
       inputs:
         command: build
         dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
@@ -31,19 +28,16 @@ stages:
           $(tag)
 
 - stage: Deploy
-  displayName: Deploy Docker image to Azure VM
+  displayName: Deploy Docker Image to Azure VM
   dependsOn: Build
   jobs:
   - job: Deploy
-    displayName: Deploy and run image on Azure VM
+    displayName: Deploy Docker image and run container on Azure VM
     pool:
       vmImage: ubuntu-latest
     steps:
-    - task: UseSSH@0
-      inputs:
-        sshEndpoint: '<your-ssh-service-connection>'  # Alternatively, you can use SSH keys directly
+    # If you want to use SSH directly with private key:
     - script: |
         echo "Deploying Docker image to Azure VM..."
-        ssh -o StrictHostKeyChecking=no -i $(SSH_PRIVATE_KEY) $(sshUser)@$(vmIp) "docker pull <your-container-registry>/your-image:$(tag) && docker run -d -p 80:80 <your-container-registry>/your-image:$(tag)"
+        ssh -o StrictHostKeyChecking=no -i $(privateKey) $(sshUser)@$(vmIp) "docker pull <your-container-registry>/your-image:$(tag) && docker run -d -p 80:80 <your-container-registry>/your-image:$(tag)"
       displayName: 'Run Docker container on Azure VM via SSH'
-
