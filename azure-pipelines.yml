@@ -1,6 +1,5 @@
-# Docker
-# Build a Docker image
-# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+#20.197.9.94
 
 trigger:
 - main
@@ -10,13 +9,16 @@ resources:
 
 variables:
   tag: '$(Build.BuildId)'
+  vmIp: '20.197.9.94'        # Replace with your Azure VM's public IP address
+  sshUser: 'azuruser'          # Replace with your SSH user for the VM
+  privateKey: $(SSH_PRIVATE_KEY) # You should securely store your private SSH key in Pipeline variables or Azure Key Vault
 
 stages:
 - stage: Build
   displayName: Build image
   jobs:
   - job: Build
-    displayName: Build
+    displayName: Build Docker image
     pool:
       vmImage: ubuntu-latest
     steps:
@@ -27,3 +29,21 @@ stages:
         dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
         tags: |
           $(tag)
+
+- stage: Deploy
+  displayName: Deploy Docker image to Azure VM
+  dependsOn: Build
+  jobs:
+  - job: Deploy
+    displayName: Deploy and run image on Azure VM
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: UseSSH@0
+      inputs:
+        sshEndpoint: '<your-ssh-service-connection>'  # Alternatively, you can use SSH keys directly
+    - script: |
+        echo "Deploying Docker image to Azure VM..."
+        ssh -o StrictHostKeyChecking=no -i $(SSH_PRIVATE_KEY) $(sshUser)@$(vmIp) "docker pull <your-container-registry>/your-image:$(tag) && docker run -d -p 80:80 <your-container-registry>/your-image:$(tag)"
+      displayName: 'Run Docker container on Azure VM via SSH'
+
