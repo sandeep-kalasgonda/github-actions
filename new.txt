@@ -1,3 +1,17 @@
+
+Age : 26
+Gender : male 
+Job : business 
+Name- sandeep kalasgonda
+Account - 63200100022004
+IFSC - BARB0VJULGA
+UPI ID - 8530794719@ybl
+
+
+
+
+
+
 -----BEGIN RSA PRIVATE KEY-----
 MIIG4wIBAAKCAYEAuVMj2AHho8Z58TYfk+BPtKYeWZvqj5sV7QEx77XTp9TEHmtz
 UQGO7ZJ0IvjmtUtJrhk4fY0hDklqTkcZoJXl6QyoCvILhUdcnET65ZaJI4cxVP0u
